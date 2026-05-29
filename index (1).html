@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<meta name="theme-color" content="#090d13"/>
+<title>ArenaX — Skill Tournaments</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   ARENAX — PREMIUM DARK GAMING UI
+   Palette: #090d13 base | #141a24 cards | #ffb703 gold
+            #00f5d4 green | #ff477e danger | #1e2840 elevated
+   Fonts: Syne (display) · Nunito (body) · Space Mono (numbers)
+   ============================================================ */
+
+:root {
+  --bg:        #090d13;
+  --surface:   #0e1420;
+  --card:      #141a24;
+  --elevated:  #1e2840;
+  --border:    rgba(255,255,255,0.07);
+  --gold:      #ffb703;
+  --gold-dim:  rgba(255,183,3,0.14);
+  --gold-glow: rgba(255,183,3,0.45);
+  --green:     #00f5d4;
+  --green-dim: rgba(0,245,212,0.12);
+  --green-glow:rgba(0,245,212,0.4);
+  --danger:    #ff477e;
+  --danger-dim:rgba(255,71,126,0.12);
+  --muted:     rgba(255,255,255,0.38);
+  --subtle:    rgba(255,255,255,0.55);
+  --text:      #e8edf5;
+  --ff-display:'Syne', sans-serif;
+  --ff-body:   'Nunito', sans-serif;
+  --ff-mono:   'Space Mono', monospace;
+  --r-sm: 8px; --r-md: 14px; --r-lg: 20px; --r-xl: 28px;
+  --top-h: 58px; --bot-h: 64px;
+  --tr: 0.22s cubic-bezier(.4,0,.2,1);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);
+  font-family:var(--ff-body);font-size:16px;-webkit-font-smoothing:antialiased}
+button{font-family:var(--ff-body);cursor:pointer;border:none;background:none;color:inherit}
+input{font-family:var(--ff-body)}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+ul{list-style:none}
+strong{font-weight:800}
+
+/* ── Utility ── */
+.neon-gold{color:var(--gold);text-shadow:0 0 14px var(--gold-glow)}
+.neon-green{color:var(--green);text-shadow:0 0 14px var(--green-glow)}
+.neon-danger{color:var(--danger)}
+.ff-mono{font-family:var(--ff-mono)}
+
+/* ============================================================
+   LEGAL MODAL
+   ============================================================ */
+#legalOverlay{
+  position:fixed;inset:0;z-index:9999;
+  display:flex;align-items:flex-end;justify-content:center;
+  background:rgba(0,0,0,0.82);backdrop-filter:blur(10px);
+  opacity:0;pointer-events:none;
+  transition:opacity .35s ease;
+}
+#legalOverlay.show{opacity:1;pointer-events:all}
+#legalBox{
+  width:100%;max-width:480px;
+  background:var(--card);
+  border:1px solid rgba(255,183,3,0.25);
+  border-radius:var(--r-xl) var(--r-xl) 0 0;
+  padding:0 0 max(24px,env(safe-area-inset-bottom)) 0;
+  transform:translateY(100%);
+  transition:transform .4s cubic-bezier(.34,1.36,.64,1);
+  overflow:hidden;position:relative;
+}
+#legalOverlay.show #legalBox{transform:translateY(0)}
+
+.legal-stripe{
+  height:4px;
+  background:linear-gradient(90deg,var(--green),var(--gold),var(--danger));
+}
+.legal-inner{padding:24px 22px 0}
+.legal-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--danger-dim);border:1px solid rgba(255,71,126,0.3);
+  color:var(--danger);font-size:10px;font-weight:700;letter-spacing:1.2px;
+  font-family:var(--ff-display);padding:4px 12px;border-radius:100px;
+  margin-bottom:14px;
+}
+.legal-title{
+  font-family:var(--ff-display);font-size:clamp(22px,6vw,28px);
+  font-weight:800;line-height:1.15;margin-bottom:14px;
+}
+.legal-title span{color:var(--gold)}
+.legal-divider{height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin-bottom:16px}
+.legal-body{font-size:13.5px;line-height:1.75;color:var(--subtle);margin-bottom:16px}
+.legal-body strong{color:var(--text)}
+.legal-list{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+.legal-list li{
+  display:flex;align-items:center;gap:10px;
+  font-size:13px;color:var(--subtle);
+}
+.lbullet{
+  width:7px;height:7px;border-radius:50%;flex-shrink:0;
+}
+.lbullet.g{background:var(--green);box-shadow:0 0 8px var(--green)}
+.lbullet.y{background:var(--gold);box-shadow:0 0 8px var(--gold)}
+.lbullet.r{background:var(--danger);box-shadow:0 0 8px var(--danger)}
+.legal-note{font-size:11px;color:var(--muted);text-align:center;margin-bottom:20px;line-height:1.6}
+
+.btn-agree{
+  display:block;width:100%;height:52px;border-radius:var(--r-md);
+  background:linear-gradient(135deg,#d49500,#ffb703,#ffe066);
+  color:#0d0900;font-family:var(--ff-display);font-size:14px;font-weight:800;
+  letter-spacing:.8px;position:relative;overflow:hidden;
+  box-shadow:0 4px 28px rgba(255,183,3,0.5);
+  transition:transform var(--tr),box-shadow var(--tr);
+}
+.btn-agree:active{transform:scale(0.97)}
+.btn-agree-shine{
+  position:absolute;top:-50%;left:-70%;width:45%;height:200%;
+  background:linear-gradient(105deg,transparent,rgba(255,255,255,.4),transparent);
+  transform:skewX(-18deg);
+  animation:btnshine 2.8s infinite 1.2s;
+}
+@keyframes btnshine{0%{left:-70%}40%,100%{left:160%}}
+
+/* ============================================================
+   APP SHELL
+   ============================================================ */
+#app{
+  display:flex;flex-direction:column;
+  width:100%;height:100%;max-width:480px;margin:0 auto;
+  position:relative;
+}
+
+/* ── Top Header ── */
+#topbar{
+  position:fixed;top:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:480px;height:var(--top-h);
+  background:rgba(9,13,19,0.94);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;z-index:200;
+}
+.topbar-logo{display:flex;align-items:center;gap:8px}
+.logo-icon{
+  width:32px;height:32px;border-radius:8px;
+  background:linear-gradient(135deg,var(--gold),#ff9500);
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;box-shadow:0 0 14px var(--gold-glow);
+}
+.logo-wordmark{
+  font-family:var(--ff-display);font-size:18px;font-weight:800;
+  letter-spacing:-.3px;color:var(--text);
+}
+.logo-wordmark span{color:var(--gold)}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.wallet-badge{
+  display:flex;align-items:center;gap:5px;
+  background:var(--gold-dim);border:1px solid rgba(255,183,3,.3);
+  border-radius:100px;padding:5px 13px;
+  cursor:pointer;
+  transition:background var(--tr);
+}
+.wallet-badge:active{background:rgba(255,183,3,.22)}
+.wb-symbol{color:var(--gold);font-size:13px;font-weight:800;font-family:var(--ff-mono)}
+.wb-amount{color:var(--gold);font-size:13px;font-weight:700;font-family:var(--ff-mono)}
+.avatar{
+  width:34px;height:34px;border-radius:50%;
+  border:2px solid var(--green);
+  box-shadow:0 0 10px var(--green-glow);
+  background:var(--elevated);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--ff-display);font-size:11px;font-weight:700;color:var(--green);
+}
+
+/* ── Bottom Tab Nav ── */
+#bottomnav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:480px;height:var(--bot-h);
+  background:rgba(9,13,19,0.97);backdrop-filter:blur(18px);
+  border-top:1px solid var(--border);
+  display:flex;align-items:stretch;z-index:200;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.tab-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:4px;
+  color:var(--muted);font-size:10px;font-weight:700;
+  font-family:var(--ff-display);letter-spacing:.4px;
+  transition:color var(--tr);
+  position:relative;
+}
+.tab-btn .tab-ico{
+  width:22px;height:22px;display:flex;align-items:center;justify-content:center;
+  font-size:18px;transition:transform var(--tr),filter var(--tr);
+}
+.tab-btn.active{color:var(--gold)}
+.tab-btn.active .tab-ico{
+  filter:drop-shadow(0 0 6px var(--gold));
+  transform:scale(1.15) translateY(-2px);
+}
+.tab-btn.active::after{
+  content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:40px;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  border-radius:0 0 4px 4px;
+}
+/* live indicator on Live Room tab */
+.tab-btn[data-tab="game"] .tab-ico::after{
+  content:'';position:absolute;top:0;right:0;
+  width:7px;height:7px;border-radius:50%;
+  background:var(--danger);box-shadow:0 0 6px var(--danger);
+  animation:livepulse 1.4s infinite;
+}
+@keyframes livepulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.7)}}
+
+/* ── Screens ── */
+.screen{
+  display:none;
+  position:fixed;
+  top:var(--top-h);
+  bottom:var(--bot-h);
+  left:50%;transform:translateX(-50%);
+  width:100%;max-width:480px;
+  overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.screen::-webkit-scrollbar{display:none}
+.screen.active{
+  display:block;
+  animation:scrIn .3s ease both;
+}
+@keyframes scrIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* ============================================================
+   HOME SCREEN
+   ============================================================ */
+.hero{
+  padding:22px 16px 16px;
+  background:linear-gradient(170deg,#0d1826 0%,#090d13 100%);
+  border-bottom:1px solid var(--border);
+  position:relative;overflow:hidden;
+}
+.hero-grid-bg{
+  position:absolute;inset:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(0,245,212,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,245,212,.035) 1px,transparent 1px);
+  background-size:28px 28px;
+}
+.hero-glow{
+  position:absolute;top:-60px;right:-40px;
+  width:220px;height:220px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,183,3,.12) 0%,transparent 65%);
+  pointer-events:none;
+}
+.hero-tag{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--ff-display);font-size:10px;font-weight:700;
+  letter-spacing:1.8px;color:var(--green);
+  margin-bottom:10px;position:relative;
+}
+.hero-tag-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--danger);box-shadow:0 0 8px var(--danger);
+  animation:livepulse 1.4s infinite;
+}
+.hero-h1{
+  font-family:var(--ff-display);
+  font-size:clamp(28px,8vw,38px);
+  font-weight:800;line-height:1.1;
+  margin-bottom:10px;position:relative;
+}
+.hero-h1 em{color:var(--gold);font-style:normal}
+.hero-sub{
+  font-size:13px;color:var(--subtle);line-height:1.65;
+  margin-bottom:18px;position:relative;
+}
+.hero-kpis{
+  display:grid;grid-template-columns:1fr 1px 1fr;
+  background:rgba(0,0,0,.3);border:1px solid var(--border);
+  border-radius:var(--r-md);overflow:hidden;position:relative;
+}
+.kpi{padding:13px 0;text-align:center}
+.kpi-val{
+  font-family:var(--ff-display);font-size:22px;font-weight:800;
+  letter-spacing:-.4px;line-height:1;margin-bottom:4px;
+}
+.kpi-label{font-size:11px;color:var(--muted);letter-spacing:.3px}
+.kpi-sep{background:var(--border)}
+
+/* ── State Cards ── */
+.sec-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 16px 10px;
+}
+.sec-title{
+  font-family:var(--ff-display);font-size:15px;font-weight:700;letter-spacing:.4px;
+}
+.live-pill{
+  display:flex;align-items:center;gap:5px;
+  background:var(--danger-dim);border:1px solid rgba(255,71,126,.3);
+  color:var(--danger);font-size:10px;font-weight:700;
+  font-family:var(--ff-display);letter-spacing:1px;
+  padding:4px 10px;border-radius:100px;
+}
+.live-pill-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--danger);animation:livepulse 1.4s infinite;
+}
+
+.cards-list{
+  display:flex;flex-direction:column;gap:9px;
+  padding:0 16px 20px;
+}
+.state-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+  padding:13px 13px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  transition:border-color var(--tr),box-shadow var(--tr),transform var(--tr);
+  animation:cardIn .4s ease both;
+}
+.state-card:active{transform:scale(0.985)}
+.state-card:hover{border-color:rgba(255,183,3,.2);box-shadow:0 2px 18px rgba(255,183,3,.1)}
+@keyframes cardIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.card-left{display:flex;align-items:center;gap:11px;min-width:0}
+.card-emoji{font-size:26px;flex-shrink:0}
+.card-info{min-width:0}
+.card-name{
+  font-family:var(--ff-display);font-size:14px;font-weight:700;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;
+}
+.card-players{font-size:11.5px;color:var(--muted);margin-bottom:5px}
+.card-timer-row{display:flex;align-items:center;gap:5px}
+.card-timer-label{font-size:11px;color:var(--muted)}
+.card-timer{
+  font-family:var(--ff-mono);font-size:12.5px;font-weight:700;
+  color:var(--green);letter-spacing:.8px;
+  transition:color .3s;
+}
+.card-timer.urgent{color:var(--danger)!important;animation:timerflash 1s infinite}
+@keyframes timerflash{0%,100%{opacity:1}50%{opacity:.5}}
+.card-right{display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex-shrink:0}
+.card-prize{
+  font-family:var(--ff-display);font-size:14px;font-weight:700;
+  color:var(--gold);text-shadow:0 0 10px var(--gold-glow);
+}
+.btn-join{
+  padding:8px 16px;border-radius:var(--r-sm);
+  background:linear-gradient(135deg,#1a3a1a,#00b88a);
+  border:1px solid rgba(0,245,212,.3);
+  color:var(--green);font-size:12px;font-weight:700;
+  font-family:var(--ff-display);letter-spacing:.5px;white-space:nowrap;
+  box-shadow:0 2px 14px rgba(0,245,212,.18);
+  transition:transform var(--tr),box-shadow var(--tr);
+}
+.btn-join:active{transform:scale(0.93)}
+.btn-join:hover{box-shadow:0 4px 22px rgba(0,245,212,.35)}
+
+/* ============================================================
+   GAME ROOM SCREEN
+   ============================================================ */
+.gr-padded{padding:14px 16px 24px}
+.gr-toprow{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:6px;
+}
+.btn-back{
+  font-size:13px;font-weight:700;color:var(--subtle);
+  display:flex;align-items:center;gap:4px;
+  transition:color var(--tr);
+}
+.btn-back:active{color:var(--green)}
+.gr-room-badge{
+  display:flex;align-items:center;gap:6px;
+  background:var(--green-dim);border:1px solid rgba(0,245,212,.3);
+  color:var(--green);font-size:11px;font-weight:700;font-family:var(--ff-display);
+  letter-spacing:.8px;padding:5px 12px;border-radius:100px;
+}
+.gr-room-dot{width:6px;height:6px;border-radius:50%;background:var(--danger);animation:livepulse 1.4s infinite}
+.gr-round-txt{font-size:12px;color:var(--muted);margin-bottom:20px}
+
+/* ── Circular Timer ── */
+.timer-wrap{
+  display:flex;flex-direction:column;align-items:center;
+  margin-bottom:18px;
+}
+.timer-svg-wrap{position:relative;width:190px;height:190px}
+.t-svg{width:190px;height:190px;transform:rotate(-90deg)}
+.t-track{fill:none;stroke:rgba(255,255,255,.06);stroke-width:12}
+.t-ring{
+  fill:none;stroke:url(#tGrad);stroke-width:12;stroke-linecap:round;
+  stroke-dasharray:534;stroke-dashoffset:0;
+  filter:drop-shadow(0 0 8px rgba(0,245,212,.6));
+  transition:stroke-dashoffset 1s linear;
+}
+.t-center{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.t-label{
+  font-family:var(--ff-display);font-size:9px;font-weight:700;
+  letter-spacing:2px;color:var(--muted);margin-bottom:2px;
+}
+.t-digits{
+  font-family:var(--ff-mono);font-size:40px;font-weight:700;
+  color:var(--green);letter-spacing:-1px;line-height:1;
+  text-shadow:0 0 20px var(--green-glow);
+  transition:color .3s;
+}
+.t-digits.danger{color:var(--danger)!important;text-shadow:0 0 20px rgba(255,71,126,.6)!important}
+.t-sub{font-size:10px;color:var(--muted);font-family:var(--ff-display);letter-spacing:1.5px;margin-top:3px}
+
+/* ticket fill bar */
+.fill-bar-card{
+  width:100%;background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r-md);padding:13px 16px;
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+}
+.fb-label{font-size:13px;font-weight:700;color:var(--subtle);white-space:nowrap}
+.fb-right{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.fb-track{
+  flex:1;height:7px;background:rgba(255,255,255,.07);
+  border-radius:100px;overflow:hidden;
+}
+.fb-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--green),var(--gold));
+  border-radius:100px;box-shadow:0 0 8px var(--green);
+  transition:width .5s ease;
+}
+.fb-count{
+  font-family:var(--ff-mono);font-size:15px;font-weight:700;
+  color:var(--green);white-space:nowrap;
+}
+.fb-denom{font-size:12px;color:var(--muted)}
+
+/* ── Submit Panel ── */
+.sp-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r-lg);overflow:hidden;
+  margin:14px 0;
+}
+.sp-tabs{display:flex;border-bottom:1px solid var(--border)}
+.sp-tab{
+  flex:1;height:46px;font-size:13px;font-weight:700;
+  font-family:var(--ff-display);letter-spacing:.3px;
+  color:var(--muted);transition:color var(--tr),background var(--tr);
+  border-bottom:2px solid transparent;
+}
+.sp-tab.active{
+  color:var(--gold);background:var(--gold-dim);
+  border-bottom-color:var(--gold);
+}
+.sp-pane{display:none;padding:18px 16px}
+.sp-pane.active{display:block}
+
+.sp-hint{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:14px}
+
+.inp-label{
+  display:block;font-size:11.5px;font-weight:700;
+  color:var(--muted);letter-spacing:.4px;margin-bottom:8px;
+}
+.inp-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.qty-btn{
+  width:44px;height:44px;border-radius:var(--r-sm);
+  background:var(--elevated);border:1px solid var(--border);
+  font-size:22px;color:var(--text);line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  transition:background var(--tr),border-color var(--tr);
+}
+.qty-btn:active{background:var(--green-dim);border-color:rgba(0,245,212,.3)}
+.qty-btn.gold-btn:active{background:var(--gold-dim);border-color:rgba(255,183,3,.3)}
+.num-inp{
+  flex:1;height:44px;border-radius:var(--r-sm);
+  background:var(--elevated);border:1px solid var(--border);
+  color:var(--green);font-family:var(--ff-mono);font-size:22px;font-weight:700;
+  text-align:center;outline:none;
+  transition:border-color var(--tr),box-shadow var(--tr);
+}
+.num-inp:focus{border-color:var(--green);box-shadow:0 0 12px var(--green-dim)}
+.num-inp.gold-inp{color:var(--gold)}
+.num-inp.gold-inp:focus{border-color:var(--gold);box-shadow:0 0 12px var(--gold-dim)}
+
+.btn-ads{
+  width:100%;height:50px;border-radius:var(--r-md);
+  background:linear-gradient(135deg,#072a22,#0d4035);
+  border:1px solid rgba(0,245,212,.3);
+  color:var(--green);font-family:var(--ff-display);
+  font-size:13px;font-weight:700;letter-spacing:.8px;
+  margin-bottom:9px;
+  transition:transform var(--tr),box-shadow var(--tr);
+}
+.btn-ads:hover{box-shadow:0 0 22px rgba(0,245,212,.28)}
+.btn-ads:active{transform:scale(0.97)}
+.ads-note{font-size:11px;color:var(--muted);text-align:center}
+
+.prem-row{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.prem-chip{
+  background:var(--gold-dim);border:1px solid rgba(255,183,3,.35);
+  color:var(--gold);font-size:11px;font-weight:700;font-family:var(--ff-display);
+  letter-spacing:1px;padding:4px 12px;border-radius:100px;
+}
+.prem-note{font-size:12px;color:var(--muted)}
+
+.quick-grid{
+  display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:14px;
+}
+.qb{
+  height:38px;border-radius:var(--r-sm);
+  background:var(--elevated);border:1px solid var(--border);
+  color:var(--subtle);font-family:var(--ff-mono);font-size:11.5px;font-weight:700;
+  transition:all var(--tr);
+}
+.qb:hover,.qb:active{
+  background:var(--gold-dim);border-color:rgba(255,183,3,.4);color:var(--gold);
+}
+
+.btn-prem{
+  width:100%;height:50px;border-radius:var(--r-md);
+  background:linear-gradient(135deg,#2e1d00,#4d3200,#6b4700);
+  border:1px solid rgba(255,183,3,.38);
+  color:var(--gold);font-family:var(--ff-display);
+  font-size:13px;font-weight:700;letter-spacing:.8px;
+  box-shadow:0 0 22px rgba(255,183,3,.2);
+  transition:transform var(--tr),box-shadow var(--tr);
+}
+.btn-prem:hover{box-shadow:0 0 34px rgba(255,183,3,.38)}
+.btn-prem:active{transform:scale(0.97)}
+
+/* ── Activity Feed ── */
+.feed-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r-md);padding:14px;
+}
+.feed-title{
+  font-family:var(--ff-display);font-size:11px;font-weight:700;
+  letter-spacing:1.6px;color:var(--muted);margin-bottom:11px;
+}
+.feed-list{display:flex;flex-direction:column;gap:8px}
+.feed-item{
+  display:flex;align-items:center;gap:7px;font-size:13px;
+  animation:feedin .3s ease;
+}
+@keyframes feedin{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+.feed-user{color:var(--text);font-weight:700}
+.feed-verb{color:var(--muted)}
+.feed-num{font-family:var(--ff-mono);font-weight:700;font-size:14px}
+
+/* ============================================================
+   GRID SCREEN
+   ============================================================ */
+.grid-screen-pad{padding:14px 12px 24px}
+.grid-sec-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:10px;
+}
+.grid-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+.leg-swatch{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+.leg-swatch.av{background:var(--elevated);border:1px solid var(--border)}
+.leg-swatch.lk{background:rgba(255,71,126,.14);border:1px solid rgba(255,71,126,.3)}
+.leg-swatch.me{background:rgba(255,183,3,.18);border:1px solid rgba(255,183,3,.5)}
+
+.grid-filters{display:flex;gap:7px;margin-bottom:13px}
+.gf-btn{
+  padding:7px 15px;border-radius:var(--r-sm);
+  font-size:12px;font-weight:700;font-family:var(--ff-display);
+  background:var(--card);border:1px solid var(--border);color:var(--subtle);
+  transition:all var(--tr);
+}
+.gf-btn.active{
+  background:var(--gold-dim);border-color:rgba(255,183,3,.4);color:var(--gold);
+}
+
+.num-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(46px,1fr));
+  gap:4px;
+}
+.ng{
+  aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  border-radius:6px;
+  font-family:var(--ff-mono);font-size:10.5px;font-weight:700;
+  border:1px solid var(--border);background:var(--card);color:var(--subtle);
+  cursor:pointer;user-select:none;position:relative;
+  transition:all var(--tr);
+}
+.ng:not(.ng-lk):not(.ng-me):hover,.ng:not(.ng-lk):not(.ng-me):active{
+  background:var(--green-dim);border-color:rgba(0,245,212,.35);color:var(--green);
+  transform:scale(0.92);
+}
+.ng.ng-lk{
+  background:rgba(255,71,126,.07);
+  border-color:rgba(255,71,126,.18);
+  color:rgba(255,71,126,.4);
+  cursor:not-allowed;
+}
+.ng.ng-lk::after{
+  content:'⛔';font-size:7px;
+  position:absolute;top:1px;right:1px;line-height:1;
+}
+.ng.ng-me{
+  background:linear-gradient(135deg,rgba(255,183,3,.18),rgba(255,183,3,.08));
+  border-color:rgba(255,183,3,.55);
+  color:var(--gold);
+  box-shadow:0 0 8px rgba(255,183,3,.2);
+  cursor:default;
+}
+.ng.ng-hidden{display:none}
+
+/* ============================================================
+   WALLET SCREEN
+   ============================================================ */
+.wallet-pad{padding:14px 16px 28px}
+.wallet-hero{
+  position:relative;overflow:hidden;
+  background:linear-gradient(150deg,#0d1a0e,#090d13);
+  border:1px solid rgba(0,245,212,.15);
+  border-radius:var(--r-xl);padding:24px 20px 20px;
+  text-align:center;margin-bottom:14px;
+}
+.wh-glow{
+  position:absolute;top:-50px;left:50%;transform:translateX(-50%);
+  width:200px;height:140px;
+  background:radial-gradient(ellipse,rgba(0,245,212,.1) 0%,transparent 65%);
+  pointer-events:none;
+}
+.wh-eyebrow{
+  font-family:var(--ff-display);font-size:10px;font-weight:700;
+  letter-spacing:2px;color:var(--muted);margin-bottom:8px;position:relative;
+}
+.wh-amount{
+  font-family:var(--ff-display);font-size:clamp(36px,10vw,50px);font-weight:800;
+  color:var(--green);text-shadow:0 0 30px var(--green-glow);
+  margin-bottom:14px;letter-spacing:-1px;position:relative;
+}
+.wh-lock{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  font-size:13px;color:var(--subtle);margin-bottom:16px;position:relative;
+}
+.wh-lock strong{color:var(--gold)}
+.wh-lock-icon{font-size:15px}
+.wh-prog-wrap{position:relative}
+.wh-bar{height:7px;background:rgba(255,255,255,.07);border-radius:100px;overflow:hidden;margin-bottom:7px}
+.wh-bar-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--green),var(--gold));
+  border-radius:100px;box-shadow:0 0 10px var(--green);
+}
+.wh-bar-labels{
+  display:flex;justify-content:space-between;
+  font-size:10px;color:var(--muted);
+}
+
+.wstats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.wstat{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r-md);padding:15px;text-align:center;
+}
+.wstat-icon{font-size:20px;margin-bottom:7px}
+.wstat-val{
+  font-family:var(--ff-display);font-size:19px;font-weight:800;
+  margin-bottom:4px;
+}
+.wstat-label{font-size:11px;color:var(--muted)}
+
+/* ── Vouchers ── */
+.section-box{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:16px;margin-bottom:14px;
+}
+.sb-title{
+  font-family:var(--ff-display);font-size:13px;font-weight:700;
+  margin-bottom:13px;
+}
+.vouchers{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.voucher{
+  border-radius:var(--r-md);padding:15px 10px;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  text-align:center;border:1px solid;
+}
+.voucher.amz{
+  background:linear-gradient(145deg,#1c1200,#241800);
+  border-color:rgba(255,153,0,.3);
+}
+.voucher.flp{
+  background:linear-gradient(145deg,#001426,#001c36);
+  border-color:rgba(0,140,255,.3);
+}
+.v-logo{font-family:var(--ff-display);font-weight:900;font-size:13px;letter-spacing:-.3px}
+.voucher.amz .v-logo{color:#ff9900}
+.voucher.flp .v-logo{color:#0088ff}
+.v-lbl{font-size:11px;color:var(--subtle)}
+.v-min{font-size:10px;color:var(--muted)}
+.v-btn{
+  margin-top:4px;padding:7px 16px;border-radius:var(--r-sm);
+  font-size:12px;font-weight:700;font-family:var(--ff-display);
+  transition:transform var(--tr),opacity var(--tr);
+}
+.v-btn:active{transform:scale(0.93);opacity:.8}
+.voucher.amz .v-btn{background:#ff9900;color:#120800}
+.voucher.flp .v-btn{background:#0088ff;color:#fff}
+
+/* ── Referral ── */
+.ref-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}
+.ref-badge{
+  background:var(--gold-dim);border:1px solid rgba(255,183,3,.3);
+  color:var(--gold);font-size:11px;font-weight:700;font-family:var(--ff-display);
+  padding:3px 10px;border-radius:100px;
+}
+.ref-stats{display:flex;gap:0;margin-bottom:14px}
+.ref-stat{flex:1;text-align:center;padding:0 4px}
+.ref-stat+.ref-stat{border-left:1px solid var(--border)}
+.ref-stat-val{
+  font-family:var(--ff-display);font-size:20px;font-weight:800;
+  margin-bottom:3px;
+}
+.ref-stat-label{font-size:11px;color:var(--muted)}
+
+.ref-link-box{
+  display:flex;align-items:center;gap:10px;
+  background:var(--elevated);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:10px 13px;margin-bottom:11px;
+}
+.ref-link-txt{
+  flex:1;font-family:var(--ff-mono);font-size:12px;color:var(--green);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.btn-copy{
+  padding:5px 12px;border-radius:6px;flex-shrink:0;
+  background:var(--green-dim);border:1px solid rgba(0,245,212,.3);
+  color:var(--green);font-size:12px;font-weight:700;font-family:var(--ff-display);
+  transition:background var(--tr);
+}
+.btn-copy:active{background:rgba(0,245,212,.22)}
+
+.btn-share{
+  display:block;width:100%;height:50px;border-radius:var(--r-md);
+  background:linear-gradient(135deg,#003d2a,#005e40);
+  border:1px solid rgba(0,245,212,.3);
+  color:var(--green);font-family:var(--ff-display);
+  font-size:13px;font-weight:700;letter-spacing:.8px;
+  margin-bottom:11px;text-align:center;line-height:50px;
+  box-shadow:0 0 18px rgba(0,245,212,.18);
+  transition:transform var(--tr),box-shadow var(--tr);
+}
+.btn-share:active{transform:scale(0.97)}
+.btn-share:hover{box-shadow:0 0 30px rgba(0,245,212,.32)}
+
+.share-plat{display:flex;gap:8px}
+.sp-btn{
+  flex:1;padding:10px 0;border-radius:var(--r-sm);
+  font-size:12px;font-weight:700;font-family:var(--ff-display);border:1px solid;
+  transition:transform var(--tr),opacity var(--tr);
+}
+.sp-btn:active{transform:scale(0.93);opacity:.75}
+.sp-btn.wa{background:rgba(37,211,102,.1);border-color:rgba(37,211,102,.3);color:#25d366}
+.sp-btn.tg{background:rgba(0,136,204,.1);border-color:rgba(0,136,204,.3);color:#0088cc}
+.sp-btn.ig{background:rgba(225,48,108,.1);border-color:rgba(225,48,108,.3);color:#e1306c}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+#toast{
+  position:fixed;bottom:calc(var(--bot-h) + 14px);left:50%;
+  transform:translateX(-50%) translateY(18px);
+  background:var(--elevated);border:1px solid var(--border);
+  color:var(--text);font-size:13px;font-weight:600;
+  font-family:var(--ff-body);padding:11px 22px;
+  border-radius:100px;white-space:nowrap;
+  box-shadow:0 8px 32px rgba(0,0,0,.55);
+  z-index:1000;opacity:0;pointer-events:none;
+  transition:opacity .25s,transform .25s;
+  max-width:88vw;text-align:center;
+  backdrop-filter:blur(10px);
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media(min-width:481px){
+  #app{box-shadow:0 0 0 1px var(--border),0 40px 80px rgba(0,0,0,.7)}
+}
+@media(max-width:360px){
+  .hero-h1{font-size:26px}
+  .t-digits{font-size:34px}
+  .wh-amount{font-size:34px}
+  .quick-grid{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     LEGAL MODAL
+══════════════════════════════════════ -->
+<div id="legalOverlay">
+  <div id="legalBox">
+    <div class="legal-stripe"></div>
+    <div class="legal-inner">
+      <div class="legal-chip">⚖️ MANDATORY NOTICE</div>
+      <h2 class="legal-title">Skill-Based<br><span>Tournament Platform</span></h2>
+      <div class="legal-divider"></div>
+      <p class="legal-body">
+        <strong>ArenaX</strong> hosts exclusively <strong>Skill-Based Contests</strong>.
+        All prize money and rewards are funded 100% through
+        <strong>Advertisement Revenue</strong> generated on this platform.
+        No direct monetary wagers are accepted.
+      </p>
+      <ul class="legal-list">
+        <li><span class="lbullet g"></span>Zero entry fees charged to participants</li>
+        <li><span class="lbullet y"></span>All rewards are funded via Ad-Revenue only</li>
+        <li><span class="lbullet r"></span>You must be 18 years or older to participate</li>
+        <li><span class="lbullet g"></span>Results are determined by skill &amp; fair algorithm</li>
+        <li><span class="lbullet y"></span>Platform operates under applicable Indian IT laws</li>
+      </ul>
+      <p class="legal-note">
+        Tapping "Agree &amp; Enter" confirms you have read, understood,<br>
+        and agree to our Terms of Service &amp; Privacy Policy.
+      </p>
+      <button class="btn-agree" id="agreeBtn">
+        <span>✅ &nbsp; Agree &amp; Enter</span>
+        <div class="btn-agree-shine"></div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     APP
+══════════════════════════════════════ -->
+<div id="app">
+
+  <!-- TOP BAR -->
+  <header id="topbar">
+    <div class="topbar-logo">
+      <div class="logo-icon">⚡</div>
+      <div class="logo-wordmark">ARENA<span>X</span></div>
+    </div>
+    <div class="topbar-right">
+      <div class="wallet-badge" onclick="goTab('wallet')">
+        <span class="wb-symbol">₹</span>
+        <span class="wb-amount" id="headerBal">1,250</span>
+      </div>
+      <div class="avatar" id="userAvatar">YK</div>
+    </div>
+  </header>
+
+  <!-- ── SCREEN: HOME ── -->
+  <div class="screen active" id="scr-home">
+    <div class="hero">
+      <div class="hero-grid-bg"></div>
+      <div class="hero-glow"></div>
+      <div class="hero-tag">
+        <span class="hero-tag-dot"></span>LIVE NOW &bull; 10 STATES
+      </div>
+      <h1 class="hero-h1">State<br><em>Tournaments</em></h1>
+      <p class="hero-sub">Pick your state. Pick your number.<br>Watch the ad. Claim the prize.</p>
+      <div class="hero-kpis">
+        <div class="kpi">
+          <div class="kpi-val neon-green" id="onlineCount">4,831</div>
+          <div class="kpi-label">Online Now</div>
+        </div>
+        <div class="kpi-sep"></div>
+        <div class="kpi">
+          <div class="kpi-val neon-gold">₹96K</div>
+          <div class="kpi-label">Today's Prizes</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-head">
+      <span class="sec-title">Active Tournaments</span>
+      <div class="live-pill"><span class="live-pill-dot"></span>LIVE</div>
+    </div>
+    <div class="cards-list" id="stateList"></div>
+  </div>
+
+  <!-- ── SCREEN: GAME ROOM ── -->
+  <div class="screen" id="scr-game">
+    <div class="gr-padded">
+      <div class="gr-toprow">
+        <button class="btn-back" onclick="goTab('home')">&#8592; Back</button>
+        <div class="gr-room-badge">
+          <span class="gr-room-dot"></span>
+          <span id="roomTitle">DELHI NCR</span>
+        </div>
+      </div>
+      <div class="gr-round-txt" id="roundLabel">Round 3 of 5 — Ticket Phase Open</div>
+
+      <!-- Circular Countdown -->
+      <div class="timer-wrap">
+        <div class="timer-svg-wrap">
+          <svg class="t-svg" viewBox="0 0 190 190">
+            <defs>
+              <linearGradient id="tGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#00f5d4"/>
+                <stop offset="100%" stop-color="#ffb703"/>
+              </linearGradient>
+            </defs>
+            <circle class="t-track" cx="95" cy="95" r="85"/>
+            <circle class="t-ring" cx="95" cy="95" r="85" id="tRing"/>
+          </svg>
+          <div class="t-center">
+            <div class="t-label">ENDS IN</div>
+            <div class="t-digits" id="tDisplay">05:00</div>
+            <div class="t-sub">minutes</div>
+          </div>
+        </div>
+
+        <!-- Ticket Fill Bar -->
+        <div class="fill-bar-card" style="margin-top:16px">
+          <span class="fb-label">Tickets Filled</span>
+          <div class="fb-right">
+            <div class="fb-track"><div class="fb-fill" id="fbFill" style="width:40%"></div></div>
+            <span class="fb-count" id="fbCount">12<span class="fb-denom">/30</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit Panel -->
+      <div class="sp-card">
+        <div class="sp-tabs">
+          <button class="sp-tab active" onclick="switchTab('free',this)">🎯 Free (Ad)</button>
+          <button class="sp-tab" onclick="switchTab('prem',this)">⚡ Premium</button>
+        </div>
+
+        <!-- Free Pane -->
+        <div class="sp-pane active" id="pane-free">
+          <p class="sp-hint">Watch a short ad to submit your ticket number for free. One ticket per ad.</p>
+          <label class="inp-label">YOUR TICKET NUMBER (1–999)</label>
+          <div class="inp-row">
+            <button class="qty-btn" onclick="nudge('freeInp',-1)">−</button>
+            <input type="number" class="num-inp" id="freeInp" min="1" max="999" value="42"/>
+            <button class="qty-btn" onclick="nudge('freeInp',1)">+</button>
+          </div>
+          <button class="btn-ads" onclick="submitFree()">▶ &nbsp;Watch Ad &amp; Submit Ticket</button>
+          <div class="ads-note">⏱ ~30 sec ad &bull; Free to play &bull; No entry fee</div>
+        </div>
+
+        <!-- Premium Pane -->
+        <div class="sp-pane" id="pane-prem">
+          <div class="prem-row">
+            <div class="prem-chip">⭐ PREMIUM</div>
+            <div class="prem-note">No ads &bull; Instant &bull; Priority queue</div>
+          </div>
+          <label class="inp-label">YOUR TICKET NUMBER (1–999)</label>
+          <div class="inp-row">
+            <button class="qty-btn gold-btn" onclick="nudge('premInp',-1)">−</button>
+            <input type="number" class="num-inp gold-inp" id="premInp" min="1" max="999" value="77"/>
+            <button class="qty-btn gold-btn" onclick="nudge('premInp',1)">+</button>
+          </div>
+          <div class="quick-grid" id="quickGrid"></div>
+          <button class="btn-prem" onclick="submitPrem()">⚡ &nbsp;Quick Submit</button>
+        </div>
+      </div>
+
+      <!-- Live Feed -->
+      <div class="feed-card">
+        <div class="feed-title">⚡ LIVE ACTIVITY</div>
+        <div class="feed-list" id="feedList">
+          <div class="feed-item">
+            <span class="feed-user">Priya_D</span>
+            <span class="feed-verb">picked</span>
+            <span class="feed-num neon-green">#234</span>
+          </div>
+          <div class="feed-item">
+            <span class="feed-user">RajK99</span>
+            <span class="feed-verb">picked</span>
+            <span class="feed-num neon-gold">#77</span>
+          </div>
+          <div class="feed-item">
+            <span class="feed-user">Suno_M</span>
+            <span class="feed-verb">picked</span>
+            <span class="feed-num neon-green">#512</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCREEN: GRID ── -->
+  <div class="screen" id="scr-grid">
+    <div class="grid-screen-pad">
+      <div class="grid-sec-head">
+        <span class="sec-title">🎯 Number Grid (1–999)</span>
+      </div>
+      <div class="grid-legend">
+        <span class="leg-item"><span class="leg-swatch av"></span>Available</span>
+        <span class="leg-item"><span class="leg-swatch lk"></span>Locked</span>
+        <span class="leg-item"><span class="leg-swatch me"></span>Mine</span>
+      </div>
+      <div class="grid-filters" style="margin-top:12px">
+        <button class="gf-btn active" onclick="filterGrid('all',this)">All</button>
+        <button class="gf-btn" onclick="filterGrid('avail',this)">Available</button>
+        <button class="gf-btn" onclick="filterGrid('mine',this)">My Picks</button>
+      </div>
+      <div class="num-grid" id="numGrid"></div>
+    </div>
+  </div>
+
+  <!-- ── SCREEN: WALLET ── -->
+  <div class="screen" id="scr-wallet">
+    <div class="wallet-pad">
+      <!-- Hero Balance -->
+      <div class="wallet-hero">
+        <div class="wh-glow"></div>
+        <div class="wh-eyebrow">TOTAL WALLET BALANCE</div>
+        <div class="wh-amount">₹<span id="wBal">1,250</span></div>
+        <div class="wh-lock">
+          <span class="wh-lock-icon">🔒</span>
+          <span>Available to withdraw in <strong>18 days</strong> &nbsp;(verification cooldown)</span>
+        </div>
+        <div class="wh-prog-wrap">
+          <div class="wh-bar"><div class="wh-bar-fill" style="width:48%"></div></div>
+          <div class="wh-bar-labels"><span>Day 12 of 25</span><span>Unlock: Day 25</span></div>
+        </div>
+      </div>
+
+      <!-- Stat Tiles -->
+      <div class="wstats">
+        <div class="wstat">
+          <div class="wstat-icon">🏆</div>
+          <div class="wstat-val neon-green">₹850</div>
+          <div class="wstat-label">Prize Earnings</div>
+        </div>
+        <div class="wstat">
+          <div class="wstat-icon">👥</div>
+          <div class="wstat-val neon-gold">₹400</div>
+          <div class="wstat-label">Referral Bonus</div>
+        </div>
+      </div>
+
+      <!-- Vouchers -->
+      <div class="section-box">
+        <div class="sb-title">🎁 Redeem Gift Vouchers</div>
+        <div class="vouchers">
+          <div class="voucher amz">
+            <div class="v-logo">amazon</div>
+            <div class="v-lbl">Amazon Gift Card</div>
+            <div class="v-min">Min ₹500</div>
+            <button class="v-btn" onclick="redeem('Amazon')">Redeem</button>
+          </div>
+          <div class="voucher flp">
+            <div class="v-logo">flipkart</div>
+            <div class="v-lbl">Flipkart Voucher</div>
+            <div class="v-min">Min ₹250</div>
+            <button class="v-btn" onclick="redeem('Flipkart')">Redeem</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Referral -->
+      <div class="section-box">
+        <div class="ref-header">
+          <div class="sb-title" style="margin:0">🔗 Referral Center</div>
+          <div class="ref-badge">+₹50 / Invite</div>
+        </div>
+        <div class="ref-stats">
+          <div class="ref-stat"><div class="ref-stat-val neon-green">14</div><div class="ref-stat-label">Invited</div></div>
+          <div class="ref-stat"><div class="ref-stat-val neon-gold">9</div><div class="ref-stat-label">Joined</div></div>
+          <div class="ref-stat"><div class="ref-stat-val neon-green">₹450</div><div class="ref-stat-label">Earned</div></div>
+        </div>
+        <div class="ref-link-box">
+          <span class="ref-link-txt" id="refLink">arenax.app/ref/YK8291</span>
+          <button class="btn-copy" onclick="copyLink()">Copy</button>
+        </div>
+        <button class="btn-share" onclick="doShare()">📤 &nbsp; Share Referral Link</button>
+        <div class="share-plat">
+          <button class="sp-btn wa" onclick="toast('📤 Opening WhatsApp…')">WhatsApp</button>
+          <button class="sp-btn tg" onclick="toast('📤 Opening Telegram…')">Telegram</button>
+          <button class="sp-btn ig" onclick="toast('📤 Opening Instagram…')">Instagram</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav id="bottomnav">
+    <button class="tab-btn active" data-tab="home" onclick="goTab('home')">
+      <div class="tab-ico">🏠</div>
+      <span>Home</span>
+    </button>
+    <button class="tab-btn" data-tab="game" onclick="goTab('game')" style="position:relative">
+      <div class="tab-ico" style="position:relative">
+        ⏱
+        <span style="
+          position:absolute;top:-2px;right:-4px;
+          width:7px;height:7px;border-radius:50%;
+          background:var(--danger);box-shadow:0 0 6px var(--danger);
+          animation:livepulse 1.4s infinite;display:block;
+        "></span>
+      </div>
+      <span>Live Room</span>
+    </button>
+    <button class="tab-btn" data-tab="grid" onclick="goTab('grid')">
+      <div class="tab-ico">🎯</div>
+      <span>Grid</span>
+    </button>
+    <button class="tab-btn" data-tab="wallet" onclick="goTab('wallet')">
+      <div class="tab-ico">💰</div>
+      <span>Wallet</span>
+    </button>
+  </nav>
+
+</div><!-- /#app -->
+
+<div id="toast"></div>
+
+<!-- ══════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ─── Constants ─────────────────────────────────────── */
+const STATES = [
+  { name:'Delhi NCR',    emoji:'🏙️', prize:'₹12,000', players:312 },
+  { name:'Maharashtra',  emoji:'🌆', prize:'₹10,500', players:287 },
+  { name:'Uttar Pradesh',emoji:'🕌', prize:'₹9,800',  players:419 },
+  { name:'Tamil Nadu',   emoji:'🏛️', prize:'₹8,200',  players:203 },
+  { name:'Karnataka',    emoji:'🌴', prize:'₹7,500',  players:178 },
+  { name:'Rajasthan',    emoji:'🏰', prize:'₹6,000',  players:156 },
+  { name:'West Bengal',  emoji:'🎨', prize:'₹5,500',  players:134 },
+  { name:'Gujarat',      emoji:'💎', prize:'₹8,800',  players:221 },
+  { name:'Punjab',       emoji:'🌾', prize:'₹4,500',  players:99  },
+  { name:'Telangana',    emoji:'💻', prize:'₹6,800',  players:167 }
+];
+const GAME_TOTAL = 300; // 5 minutes in seconds
+const CIRC = 2 * Math.PI * 85; // svg circle r=85
+
+/* ─── State ──────────────────────────────────────────── */
+let stateTimers   = STATES.map(() => Math.floor(Math.random() * 2700) + 90);
+let gameTimerVal  = GAME_TOTAL;
+let gameInterval  = null;
+let tickFilled    = 12;
+const tickMax     = 30;
+const gridStates  = Array.from({length:999}, () => {
+  const r = Math.random();
+  return r < .14 ? 2 : r < .44 ? 1 : 0; // 2=mine, 1=locked, 0=avail
+});
+let gridFilter    = 'all';
+
+/* ─── Boot ───────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', () => {
+  // show legal modal
+  setTimeout(() => document.getElementById('legalOverlay').classList.add('show'), 80);
+  document.getElementById('agreeBtn').addEventListener('click', closeLegal);
+
+  buildStateCards();
+  buildQuickGrid();
+  buildNumGrid();
+  startStateTimers();
+  startGameTimer();
+  animateOnlineCount();
+  startFeed();
+});
+
+/* ─── Legal Modal ────────────────────────────────────── */
+function closeLegal() {
+  const o = document.getElementById('legalOverlay');
+  const b = document.getElementById('legalBox');
+  b.style.transform = 'translateY(100%)';
+  o.style.opacity   = '0';
+  setTimeout(() => { o.style.display = 'none'; }, 420);
+}
+
+/* ─── Tab Navigation ─────────────────────────────────── */
+const SCREEN_MAP = {
+  home:   'scr-home',
+  game:   'scr-game',
+  grid:   'scr-grid',
+  wallet: 'scr-wallet'
+};
+
+function goTab(name) {
+  // screens
+  Object.values(SCREEN_MAP).forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
+  const target = document.getElementById(SCREEN_MAP[name]);
+  if (target) target.classList.add('active');
+
+  // tabs
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === name);
+  });
+}
+
+/* ─── State Cards ────────────────────────────────────── */
+function buildStateCards() {
+  const list = document.getElementById('stateList');
+  list.innerHTML = STATES.map((s, i) => `
+    <div class="state-card" style="animation-delay:${i*.055}s">
+      <div class="card-left">
+        <div class="card-emoji">${s.emoji}</div>
+        <div class="card-info">
+          <div class="card-name">${s.name}</div>
+          <div class="card-players">👥 ${s.players} playing</div>
+          <div class="card-timer-row">
+            <span class="card-timer-label">Starts in</span>
+            <span class="card-timer" id="ct${i}">--:--</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-right">
+        <div class="card-prize">${s.prize}</div>
+        <button class="btn-join" onclick="joinContest(${i})">Join →</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function startStateTimers() {
+  function tick() {
+    stateTimers.forEach((v, i) => {
+      stateTimers[i] = v > 0 ? v - 1 : Math.floor(Math.random() * 2700) + 120;
+      const el = document.getElementById('ct' + i);
+      if (!el) return;
+      const m = String(Math.floor(stateTimers[i] / 60)).padStart(2,'0');
+      const s = String(stateTimers[i] % 60).padStart(2,'0');
+      el.textContent = m + ':' + s;
+      el.classList.toggle('urgent', stateTimers[i] < 60);
+    });
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+
+function joinContest(idx) {
+  document.getElementById('roomTitle').textContent = STATES[idx].name.toUpperCase();
+  document.getElementById('roundLabel').textContent = 'Round 3 of 5 — Ticket Phase Open';
+  goTab('game');
+  toast('🎮 Entering ' + STATES[idx].name + ' Tournament!');
+}
+
+/* ─── Game Timer ─────────────────────────────────────── */
+function startGameTimer() {
+  gameTimerVal = GAME_TOTAL;
+  const ring = document.getElementById('tRing');
+  ring.style.strokeDasharray  = CIRC;
+  ring.style.strokeDashoffset = '0';
+  if (gameInterval) clearInterval(gameInterval);
+  gameInterval = setInterval(tickGame, 1000);
+  renderTimer();
+}
+
+function tickGame() {
+  gameTimerVal--;
+  if (gameTimerVal < 0) gameTimerVal = GAME_TOTAL;
+  renderTimer();
+}
+
+function renderTimer() {
+  const m   = String(Math.floor(gameTimerVal / 60)).padStart(2,'0');
+  const s   = String(gameTimerVal % 60).padStart(2,'0');
+  const pct = gameTimerVal / GAME_TOTAL;
+  const off = CIRC * (1 - pct);
+  document.getElementById('tDisplay').textContent = m + ':' + s;
+  document.getElementById('tDisplay').classList.toggle('danger', gameTimerVal <= 30);
+  const ring = document.getElementById('tRing');
+  if (ring) ring.style.strokeDashoffset = off;
+}
+
+/* ─── Ticket Input ───────────────────────────────────── */
+function nudge(id, d) {
+  const inp = document.getElementById(id);
+  const val = Math.min(999, Math.max(1, (parseInt(inp.value) || 1) + d));
+  inp.value = val;
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.sp-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.sp-pane').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('pane-' + name).classList.add('active');
+}
+
+function submitFree() {
+  const v = parseInt(document.getElementById('freeInp').value);
+  if (!v || v < 1 || v > 999) { toast('⚠️ Enter a valid number (1–999)'); return; }
+  toast('⏳ Loading ad… Ticket #' + v + ' reserved!');
+  bumpFill();
+}
+
+function submitPrem() {
+  const v = parseInt(document.getElementById('premInp').value);
+  if (!v || v < 1 || v > 999) { toast('⚠️ Enter a valid number (1–999)'); return; }
+  toast('⚡ Ticket #' + v + ' submitted instantly!');
+  bumpFill();
+}
+
+function bumpFill() {
+  if (tickFilled >= tickMax) return;
+  tickFilled++;
+  const pct = (tickFilled / tickMax * 100).toFixed(0);
+  document.getElementById('fbFill').style.width = pct + '%';
+  document.getElementById('fbCount').innerHTML  = tickFilled + '<span class="fb-denom">/' + tickMax + '</span>';
+}
+
+/* ─── Quick Pick Grid ────────────────────────────────── */
+function buildQuickGrid() {
+  const picks = [7, 42, 77, 111, 369, 420, 555, 777, 888, 999, 21, 66];
+  const qg = document.getElementById('quickGrid');
+  if (!qg) return;
+  qg.innerHTML = picks.map(n =>
+    `<button class="qb" onclick="document.getElementById('premInp').value=${n}">${n}</button>`
+  ).join('');
+}
+
+/* ─── Number Grid 1–999 ──────────────────────────────── */
+function buildNumGrid() {
+  const container = document.getElementById('numGrid');
+  if (!container) return;
+  container.innerHTML = '';
+  gridStates.forEach((st, i) => {
+    const n    = i + 1;
+    const cell = document.createElement('div');
+    let   cls  = 'ng';
+    if (st === 1) cls += ' ng-lk';
+    else if (st === 2) cls += ' ng-me';
+    if (gridFilter === 'avail' && st !== 0) cls += ' ng-hidden';
+    if (gridFilter === 'mine'  && st !== 2) cls += ' ng-hidden';
+    cell.className   = cls;
+    cell.textContent = n;
+    if (st === 0) {
+      cell.addEventListener('click', () => {
+        if (gridStates[i] !== 0) return;
+        gridStates[i] = 2;
+        cell.classList.remove('ng-lk');
+        cell.classList.add('ng-me');
+        toast('✅ Ticket #' + n + ' selected!');
+      });
+    }
+    container.appendChild(cell);
+  });
+}
+
+function filterGrid(type, btn) {
+  document.querySelectorAll('.gf-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  gridFilter = type;
+  buildNumGrid();
+}
+
+/* ─── Online Counter Animation ───────────────────────── */
+function animateOnlineCount() {
+  setInterval(() => {
+    const el = document.getElementById('onlineCount');
+    if (!el) return;
+    let n = parseInt(el.textContent.replace(',', ''));
+    n = Math.max(3000, n + Math.floor(Math.random() * 13) - 6);
+    el.textContent = n.toLocaleString('en-IN');
+  }, 3200);
+}
+
+/* ─── Activity Feed ──────────────────────────────────── */
+const FAKE_USERS = ['Priya_D','RajK99','Suno_M','AKumar','Deepti22',
+                    'Arjun7','NK_Pro','VR_Boss','Seema21','GamitK',
+                    'Mohit_X','RiyaG','Tanuj3','PShah','Dev_KL'];
+
+function startFeed() {
+  setInterval(() => {
+    const list = document.getElementById('feedList');
+    if (!list) return;
+    const user  = FAKE_USERS[Math.floor(Math.random() * FAKE_USERS.length)];
+    const num   = Math.floor(Math.random() * 999) + 1;
+    const cls   = Math.random() > 0.5 ? 'neon-green' : 'neon-gold';
+    const item  = document.createElement('div');
+    item.className = 'feed-item';
+    item.innerHTML = `<span class="feed-user">${user}</span><span class="feed-verb">picked</span><span class="feed-num ${cls}">#${num}</span>`;
+    list.insertBefore(item, list.firstChild);
+    while (list.children.length > 5) list.removeChild(list.lastChild);
+  }, 2600);
+}
+
+/* ─── Wallet Actions ─────────────────────────────────── */
+function redeem(brand) {
+  toast('🎁 Redirecting to ' + brand + ' voucher portal…');
+}
+
+function copyLink() {
+  const txt = document.getElementById('refLink').textContent;
+  if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(() => {});
+  toast('🔗 Referral link copied to clipboard!');
+}
+
+function doShare() {
+  const url = 'https://arenax.app/ref/YK8291';
+  if (navigator.share) {
+    navigator.share({ title:'Join ArenaX Tournaments!', url }).catch(() => {});
+  } else {
+    copyLink();
+  }
+}
+
+/* ─── Toast ──────────────────────────────────────────── */
+let _toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>
